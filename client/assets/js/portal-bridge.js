@@ -865,6 +865,8 @@
         window.__currentUser.commission_balance = taskStatus.data.commission_balance;
         window.__currentUser.today_profit = taskStatus.data.today_profit;
         window.__currentUser.today_tasks_completed = taskStatus.data.today_tasks_completed;
+        window.__currentUser.kyc_status = taskStatus.data.kyc_status || 'none';
+        window.__currentUser.max_tasks = taskStatus.data.max_tasks;
       }
       updateTaskDisplay(taskStatus.data);
       if (taskStatus.data && taskStatus.data.pending_task) {
@@ -879,7 +881,7 @@
         e.preventDefault();
         e.stopPropagation();
         // KYC & Merchant Contract Guard (Voice Note S8)
-        let currentKyc = (window.__currentUser && window.__currentUser.kyc_status) || (user && user.kyc_status);
+        let currentKyc = (window.__currentUser && window.__currentUser.kyc_status) || (taskStatus && taskStatus.data && taskStatus.data.kyc_status) || (user && user.kyc_status) || 'none';
         if (!currentKyc) {
           try {
             const meRes = await API.get('/api/auth/me');
@@ -1024,6 +1026,9 @@
 
             const ordersCompleted = res && res.code === 'orders_completed';
             if (ordersCompleted) {
+              if (window.__currentUser) {
+                window.__currentUser.kyc_status = 'none';
+              }
               const compTitle = res.title || 'Merchant Orders Completed';
               const compMsg = res.message || 'All current orders are complete. Activate a new merchant contract to continue earning commissions.';
               if (typeof Swal !== 'undefined') {
@@ -1299,7 +1304,6 @@
       if (res && res.success) {
         window.__activePendingTask = null;
         modal.style.display = 'none';
-        showBridgeToast('Order Completed', res.message || 'Order completed successfully!', 'success');
 
         try {
           if (window.__currentUser) {
@@ -1309,6 +1313,9 @@
             window.__currentUser.today_tasks_completed = parseInt(res.data.today_tasks_completed || 0, 10);
             window.__currentUser.frozen_balance = parseFloat(res.data.frozen_balance || 0);
             window.__currentUser.pending_task = null;
+            if (res.data && res.data.kyc_status) {
+              window.__currentUser.kyc_status = res.data.kyc_status;
+            }
           }
 
           updateTaskDisplay({
@@ -1323,6 +1330,31 @@
 
           if (window.__currentUser && typeof populateUserData === 'function') {
             populateUserData(window.__currentUser);
+          }
+
+          if (res.data && res.data.cycle_completed) {
+            if (window.__currentUser) {
+              window.__currentUser.kyc_status = 'none';
+            }
+            if (typeof Swal !== 'undefined') {
+              Swal.fire({
+                title: "Merchant Orders Completed!",
+                icon: "success",
+                html: `<div style="font-size: 14px; line-height: 1.5; margin-bottom: 12px;">All current orders are complete. Please sign and activate a new merchant contract for your active Working Balance to continue earning commissions.</div>`,
+                confirmButtonText: "Activate Contract",
+                showCancelButton: true,
+                cancelButtonText: "Close",
+                confirmButtonColor: "#ff9900"
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  window.location.href = "contract.html";
+                }
+              });
+            } else {
+              showBridgeToast('Merchant Orders Completed', 'All current orders are complete. Please activate a new contract.', 'info');
+            }
+          } else {
+            showBridgeToast('Order Completed', res.message || 'Order completed successfully!', 'success');
           }
         } catch (uiErr) {
           console.warn('UI sync notice after task submit:', uiErr);

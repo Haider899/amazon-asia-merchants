@@ -269,7 +269,7 @@ app.listen(PORT, () => {
     try {
       // 4:00 AM daily rollover: subtract 4 hours so midnight to 03:59 belongs to previous day
       const adjusted = new Date(Date.now() - 4 * 60 * 60 * 1000);
-      const today = ${adjusted.getFullYear()}--;
+      const today = `${adjusted.getFullYear()}-${String(adjusted.getMonth() + 1).padStart(2, '0')}-${String(adjusted.getDate()).padStart(2, '0')}`;
       // Deficit Guard: never wipe progress or profit if user is currently in negative balance (deficit)
       await db.query(
         "UPDATE users SET today_profit = 0.00, today_tasks_completed = 0, current_set = 0, last_reset_date = ? WHERE (last_reset_date IS NULL OR last_reset_date != ?) AND balance >= 0",

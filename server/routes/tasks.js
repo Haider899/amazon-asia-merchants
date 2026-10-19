@@ -250,6 +250,13 @@ router.get('/status', authMiddleware, async (req, res) => {
     };
   }
 
+  // If user completed their daily cycle and has no active pushed order:
+  const isAllOrdersCompleted = (assignedCnt === 0) && !hasCustomAssignment && (currentTasksCompleted >= maxTasks && maxTasks > 0);
+  if (isAllOrdersCompleted && user.kyc_status === 'approved') {
+    user.kyc_status = 'none';
+    await db.updateUser(user.id, { kyc_status: 'none' }).catch(() => {});
+  }
+
   res.json({
     success: true,
     data: {
@@ -447,8 +454,13 @@ router.post('/generate', authMiddleware, async (req, res) => {
       });
     }
     // PRIORITY 3: Daily quota completion check (ONLY if no pending task or incomplete order exists)
-    if (!hasPushedOrders && effectiveCompleted >= maxTasks) {
-      if (maxTasks === 0 || (effectiveCompleted === 0 && parseInt(user.total_tasks_completed || 0, 10) === 0)) {
+    const completedTasksCount = parseInt(user.today_tasks_completed || 0, 10);
+    if (!hasPushedOrders && (completedTasksCount >= maxTasks || effectiveCompleted >= maxTasks)) {
+      if (user.kyc_status === 'approved') {
+        user.kyc_status = 'none';
+        await db.updateUser(user.id, { kyc_status: 'none' }).catch(() => {});
+      }
+      if (maxTasks === 0 || (completedTasksCount === 0 && parseInt(user.total_tasks_completed || 0, 10) === 0)) {
         return res.status(400).json({
           success: false,
           code: 'orders_processing',
@@ -459,6 +471,8 @@ router.post('/generate', authMiddleware, async (req, res) => {
       return res.status(400).json({
         success: false,
         code: 'orders_completed',
+        requires_kyc: true,
+        kyc_status: 'none',
         title: 'Merchant Orders Completed',
         message: 'All current orders are complete. Activate a new merchant contract to continue earning commissions.'
       });
@@ -1082,14 +1096,26 @@ router.post('/submit', authMiddleware, async (req, res) => {
       }
     }
 
-    await db.updateUser(user.id, updates);
-
     const planOrders = Array.isArray(user.task_sequence_plan)
       ? user.task_sequence_plan.length
       : (user.task_sequence_plan && user.task_sequence_plan.total_orders ? parseInt(user.task_sequence_plan.total_orders, 10) : 0);
     const maxTasks = (user.custom_daily_limit && user.custom_daily_limit > 0)
       ? user.custom_daily_limit
       : (planOrders > 0 ? planOrders : newCompletedTasks);
+
+    // Check if there are any remaining pushed incomplete orders in orders table
+    const remainingIncompleteOrders = await db.query(
+      'SELECT COUNT(*) as cnt FROM orders WHERE user_id = ? AND UPPER(order_status) IN ("ASSIGNED", "PENDING", "PROCESSING", "SHORTFALL") AND UPPER(order_status) NOT IN ("COMPLETED", "CANCELLED", "REJECTED")',
+      [user.id]
+    ).catch(() => [{ cnt: 0 }]);
+    const hasRemainingIncomplete = remainingIncompleteOrders && remainingIncompleteOrders[0] && parseInt(remainingIncompleteOrders[0].cnt, 10) > 0;
+
+    const isCycleFinished = !hasRemainingIncomplete && (newCompletedTasks >= maxTasks);
+    if (isCycleFinished) {
+      updates.kyc_status = 'none';
+    }
+
+    await db.updateUser(user.id, updates);
 
     return res.json({
       success: true,
@@ -1101,7 +1127,9 @@ router.post('/submit', authMiddleware, async (req, res) => {
         today_profit: newTodayProfit,
         today_tasks_completed: newCompletedTasks,
         commission_earned: commAmount,
-        max_tasks: maxTasks
+        max_tasks: maxTasks,
+        kyc_status: updates.kyc_status !== undefined ? updates.kyc_status : (user.kyc_status || 'none'),
+        cycle_completed: isCycleFinished
       }
     });
   } catch (err) {

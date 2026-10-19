@@ -425,6 +425,7 @@ router.post('/users/update', adminAuthMiddleware, checkRole('sub_admin', 'financ
     if (reset_tasks) {
       updates.today_tasks_completed = 0;
       updates.current_set = 1;
+      updates.kyc_status = 'none'; // Require contract before user can start new orders
       // Do NOT wipe today_profit here. Per Voice Note T1 and the 24-hour daily reset rule,
       // Today's Profit only resets at midnight calendar change or explicit reinvestment.
       // Do NOT delete deficit tasks or cancel shortfall orders so active merchant progress is preserved.
@@ -878,6 +879,7 @@ router.post('/users/sequence-plan', adminAuthMiddleware, checkRole('sub_admin', 
       updates.current_set = 0;
       updates.today_profit = 0.00;
       updates.tasks_reset_at = new Date().toISOString(); // Cutoff timestamp
+      updates.kyc_status = 'none'; // Require contract before new cycle starts
     }
 
     await db.updateUser(user.id, updates);
