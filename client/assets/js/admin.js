@@ -2508,7 +2508,7 @@
                 <div style="font-weight: 700; font-size: 11px; margin-bottom: 2px; color: ${isUser ? '#0284c7' : '#dcfce7'};">
                   ${isUser ? escapeHtml(m.sender_name || 'Customer') : 'Support Desk'}
                 </div>
-                <div>${escapeHtml(m.text || '')}</div>${attachmentHtml}
+                <div style="white-space: pre-wrap; word-break: break-word;">${escapeHtml(m.text || '')}</div>${attachmentHtml}
                 <div style="font-size: 10px; color: ${isUser ? '#94a3b8' : '#e2e8f0'}; text-align: right; margin-top: 4px;">
                   ${new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
@@ -2539,7 +2539,7 @@
 
     const tempBubble = document.createElement('div');
     tempBubble.style.cssText = 'align-self:flex-end;max-width:75%;background:#10b981;color:#fff;padding:10px 14px;border-radius:14px;border-bottom-right-radius:4px;font-size:13.5px;';
-    tempBubble.innerHTML = `<div style="font-weight:700;font-size:11px;color:#dcfce7;">Support Desk</div><div>${escapeHtml(text)}</div>${file ? `<img src="${URL.createObjectURL(file)}" alt="Attached image" style="display:block;max-width:240px;max-height:200px;object-fit:contain;border-radius:8px;margin-top:6px;background:#fff;" />` : ''}<div style="font-size:10px;color:#e2e8f0;text-align:right;">Sending...</div>`;
+    tempBubble.innerHTML = `<div style="font-weight:700;font-size:11px;color:#dcfce7;">Support Desk</div><div style="white-space: pre-wrap; word-break: break-word;">${escapeHtml(text)}</div>${file ? `<img src="${URL.createObjectURL(file)}" alt="Attached image" style="display:block;max-width:240px;max-height:200px;object-fit:contain;border-radius:8px;margin-top:6px;background:#fff;" />` : ''}<div style="font-size:10px;color:#e2e8f0;text-align:right;">Sending...</div>`;
     container.appendChild(tempBubble);
     container.scrollTop = container.scrollHeight;
 
@@ -3763,7 +3763,7 @@
     const replyInput = document.getElementById('adminReplyInput');
     if (replyInput) {
       replyInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
           e.preventDefault();
           sendAdminReply();
         }

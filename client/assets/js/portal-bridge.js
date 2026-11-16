@@ -3105,14 +3105,14 @@
                 <img src="/client/assets/img/icons/customer-service1.svg" style="width: 20px; height: 20px; border-radius: 50%; background: #fff; padding: 1px; flex-shrink: 0;" onerror="this.style.display='none'" />
                 <div style="flex: 1;">
                   <div style="font-weight: 700; font-size: 11px; margin-bottom: 2px; opacity: 0.9;">Amazon Support</div>
-                  <div>${escapeHtml(m.text || m.message_text || '')}</div>${attachmentHtml(m)}
+                  <div style="white-space: pre-wrap; word-break: break-word;">${escapeHtml(m.text || m.message_text || '')}</div>${attachmentHtml(m)}
                   <div class="native-bubble-time" style="text-align: left; color: #e2e8f0;">${time}</div>
                 </div>
               `;
             } else {
               bubble.className = 'native-chat-bubble native-bubble-user';
               bubble.innerHTML = `
-                <div>${escapeHtml(m.text || m.message_text || '')}</div>${attachmentHtml(m)}
+                <div style="white-space: pre-wrap; word-break: break-word;">${escapeHtml(m.text || m.message_text || '')}</div>${attachmentHtml(m)}
                 <div class="native-bubble-time" style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
                   <span>${time}</span>
                   <span style="font-size: 11px; color: #00875a; font-weight: bold;">✓</span>
