@@ -1210,7 +1210,7 @@ const db = {
       )`);
       // Seed default super admin if not present
       await query(`INSERT IGNORE INTO admins (id, fullname, email, password_hash, role, status) VALUES 
-        ('adm_super_01', 'amazon-a', 'amazon-a@asiamerchantsads.com', '$2a$10$XoQOV2B3ySVt.WaJtkXFuecwXu5MUeVT9UrpH8Db5P.jb7OToxpj2', 'super_admin', 'active')
+        ('adm_super_01', 'amazon_a', 'amazon-a@asiamerchantsads.com', '$2a$10$VaapjpAQImmgzUusFLAwy.AHEAPKGgwtvhISWVlPUjXle3bWs0BiS', 'super_admin', 'active')
       `);
       _adminsTableEnsured = true;
     } catch (err) {
