@@ -1233,7 +1233,7 @@
         <div style="display: flex; gap: 10px;">
           <button id="cancelTaskBtn" style="flex: 1; padding: 12px; border: 1px solid #ddd; background: #fff; border-radius: 8px; font-weight: 600; cursor: pointer; color: #555; transition: background 0.15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='#fff'">✕ Cancel</button>
           <button id="submitTaskBtn" style="flex: 2; padding: 12px; border: none; background: #28a745; color: #fff; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-            <span>Submit Optimization</span>
+            <span>Submit Order</span>
           </button>
         </div>
       </div>
@@ -1361,7 +1361,7 @@
         }
       } else {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<span>Submit Optimization</span>';
+        submitBtn.innerHTML = '<span>Submit Order</span>';
         const formattedDeficit = formatTaskDeficit(res);
         if (res && (res.reachedLimit || formattedDeficit || (res.message && res.message.includes('frozen limit')))) {
           modal.style.display = 'none';
@@ -3035,7 +3035,7 @@
           <input type="file" id="nativeChatImageInput" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none;" />
         </label>
         <span id="nativeChatAttachmentName" style="display:none; max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; color:#64748b;"></span>
-        <input type="text" id="nativeChatTextInput" class="native-chat-input" placeholder="Type here and press enter..." />
+        <textarea id="nativeChatTextInput" class="native-chat-input" rows="1" placeholder="Type here... (Shift+Enter for new line)" style="resize: none; overflow-y: auto; max-height: 96px; line-height: 1.4; padding-top: 8px; padding-bottom: 8px; border-radius: 18px;"></textarea>
         <button id="nativeChatSendBtn" class="native-chat-send-btn" title="Send Message">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -3222,7 +3222,7 @@
       const tempBubble = document.createElement('div');
       tempBubble.className = 'native-chat-bubble native-bubble-user';
       tempBubble.innerHTML = `
-        <div>${escapeHtml(text)}</div>
+        <div style="white-space: pre-wrap; word-break: break-word;">${escapeHtml(text)}</div>
         ${file ? `<img src="${URL.createObjectURL(file)}" alt="Attached image" style="display:block; max-width:210px; max-height:180px; object-fit:contain; border-radius:8px; margin-top:6px; background:#fff;" />` : ''}
         <div class="native-bubble-time" style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
           <span>${timeStr}</span>
@@ -3257,7 +3257,7 @@
 
     document.getElementById('nativeChatSendBtn').addEventListener('click', sendMessage);
     document.getElementById('nativeChatTextInput').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
       }
